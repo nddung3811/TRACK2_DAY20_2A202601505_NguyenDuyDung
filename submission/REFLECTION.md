@@ -188,7 +188,7 @@ Em bất ngờ vì tăng từ 6 lên 24 threads làm tg128 giảm từ 37.5 xu�
 - [x] 5 screenshots trong `submission/screenshots/`
 - [x] `make verify` → **exit 0**
 - [x] Repo GitHub ở chế độ **public**
-- [ ] Đã paste public URL vào VinUni LMS
+- [x] Đã paste public URL vào VinUni LMS
 - [x] **Không** commit `models/*.gguf` hay `runtime/` (đã có trong `.gitignore`)
 
 **Quan trọng:** repo phải **public** đến khi điểm được công bố. Private → grader không
