@@ -24,6 +24,14 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 
+# Windows PowerShell 5.1 commonly starts Python with a legacy console encoding
+# (for example cp1252).  The lab's Vietnamese text and report symbols are UTF-8;
+# configure standard streams once for every script that imports this module.
+if sys.platform == "win32":
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+
 # Pinned llama.cpp release. Gemma 4 (architecture "gemma4", April 2026) needs a
 # build newer than that; this one is well past it. Bump deliberately, not casually.
 LLAMA_CPP_BUILD = "b10488"
@@ -80,7 +88,7 @@ def model_key() -> str:
     p = active_json()
     if p.exists():
         try:
-            key = json.loads(p.read_text()).get("model_key")
+            key = json.loads(p.read_text(encoding="utf-8")).get("model_key")
             if key in MODELS:
                 return key
         except (ValueError, OSError):
@@ -197,7 +205,7 @@ def load_hardware(required: bool = True) -> dict:
         if required:
             die("hardware.json not found.", "Run: make probe")
         return {}
-    return json.loads(p.read_text())
+    return json.loads(p.read_text(encoding="utf-8"))
 
 
 def load_active(required: bool = True) -> dict:
@@ -206,7 +214,7 @@ def load_active(required: bool = True) -> dict:
         if required:
             die("models/active.json not found.", "Run: make setup")
         return {}
-    return json.loads(p.read_text())
+    return json.loads(p.read_text(encoding="utf-8"))
 
 
 def primary_model() -> str:
@@ -345,6 +353,18 @@ def runtime_bin(name: str, required: bool = True) -> Path | None:
     build, then PATH. Release archives vary in internal layout, so glob for it.
     """
     exe = f"{name}.exe" if sys.platform == "win32" else name
+    # `fetch-runtime.py` records the selected release asset here. Honour it so a
+    # CPU fallback extracted alongside a stalled CUDA runtime is unambiguous.
+    active = runtime_dir() / "active.json"
+    key = name.replace("-", "_")
+    if active.exists():
+        try:
+            selected = json.loads(active.read_text(encoding="utf-8")).get(key)
+            candidate = repo_root() / selected if selected else None
+            if candidate and candidate.is_file() and os.access(candidate, os.X_OK):
+                return candidate
+        except (ValueError, OSError, TypeError):
+            pass
     for root in (runtime_dir(), repo_root() / "bonus" / "llama.cpp"):
         if root.exists():
             for cand in sorted(root.rglob(exe)):
@@ -510,9 +530,9 @@ def run_bench(args: list[str], timeout: int = 1800) -> str:
 
 def write_report(filename: str, markdown: str, data: object | None = None) -> Path:
     out = bench_dir() / filename
-    out.write_text(markdown)
+    out.write_text(markdown, encoding="utf-8")
     if data is not None:
-        out.with_suffix(".json").write_text(json.dumps(data, indent=2))
+        out.with_suffix(".json").write_text(json.dumps(data, indent=2), encoding="utf-8")
     return out
 
 

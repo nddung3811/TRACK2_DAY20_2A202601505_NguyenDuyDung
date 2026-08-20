@@ -38,7 +38,9 @@ PROMPTS = [
     "When should you use disaggregated prefill/decode serving?",
 ]
 
-BENCH_PORT = 8099  # off the main :8080 so a running server is not disturbed
+# Off the main :8080 so a running server is not disturbed.  Make this
+# configurable too: a failed accelerated server can leave the default port busy.
+BENCH_PORT = labkit.env_int("LAB_BENCH_PORT", 8099)
 
 
 def pct(data: list[float], q: float) -> float:

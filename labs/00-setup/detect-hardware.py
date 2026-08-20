@@ -229,7 +229,7 @@ def main() -> int:
     runtime_meta = labkit.repo_root() / "runtime" / "active.json"
     if runtime_meta.exists():
         try:
-            asset = json.loads(runtime_meta.read_text()).get("asset", "?")
+            asset = json.loads(runtime_meta.read_text(encoding="utf-8")).get("asset", "?")
         except (ValueError, OSError):
             asset = "?"
         print(f"  llama.cpp     : prebuilt release {labkit.LLAMA_CPP_BUILD}  ({asset})")
@@ -269,7 +269,7 @@ def main() -> int:
         },
         "recommendation": rec,
     }
-    labkit.hardware_json().write_text(json.dumps(out, indent=2))
+    labkit.hardware_json().write_text(json.dumps(out, indent=2), encoding="utf-8")
     print(f"\nSaved {labkit.hardware_json().name} -- every other track reads this.")
     return 0
 
