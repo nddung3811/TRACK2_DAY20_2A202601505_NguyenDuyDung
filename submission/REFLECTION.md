@@ -51,9 +51,10 @@ dùng Qwen3.5 0.8B để hoàn thành phép đo local. Các số liệu trong b�
 hỏi cùng một câu trên cả hai (`make serve` vs `.venv/bin/python labs/02-serve/serve.py --compare`)
 chưa? Chất lượng khác nhau thế nào?
 
-UD-Q2_K_XL nhỏ hơn 0.11 GB nhưng decode chậm khoảng 2%. Em chưa so trực tiếp chất
-lượng bằng hai server riêng; xét riêng hiệu năng và dung lượng, em chọn Q4_K_M vì
-chênh lệch dung lượng nhỏ và latency ổn định hơn.
+UD-Q2_K_XL nhỏ hơn 0.11 GB nhưng decode P50 chỉ đạt 30.7 tok/s, thấp hơn Q4_K_M
+là 31.3 tok/s. Q4_K_M cũng có TTFT P50 thấp hơn (432 ms so với 556 ms). Em chưa
+so trực tiếp chất lượng bằng hai server riêng; với phần chênh dung lượng nhỏ này,
+em chọn Q4_K_M cho các test sau.
 
 ---
 
@@ -108,8 +109,9 @@ goodput@SLO, vì tăng slot trên CPU-only có thể làm contention nặng hơn
 phải giảm latency của pipeline này 2×, bạn sẽ tấn công vào đâu?
 
 LLM là bottleneck, đúng với pipeline nhỏ dùng keyword overlap nên embed/retrieve gần
-như không tốn thời gian. Nếu cần giảm latency 2×, em sẽ giảm decode work trước bằng
-cách giới hạn output tokens hoặc dùng runtime/GPU ổn định hơn thay vì tối ưu retrieval.
+như không tốn thời gian. Nếu cần giảm latency 2×, em sẽ giới hạn output tokens trước
+vì retrieval chỉ mất 0.0–0.1 ms. Em chỉ thử CUDA lại sau khi runtime ổn định và đo lại
+được cùng cấu hình.
 
 ---
 
