@@ -71,7 +71,11 @@ def is_committed(path: pathlib.Path) -> bool | None:
     if TRACKED is None:
         return None
     try:
-        rel = str(path.resolve().relative_to(labkit.repo_root()))
+        # Git always reports repository paths with forward slashes, including on
+        # Windows.  `str(Path)` uses backslashes there, which made every tracked
+        # nested artifact look uncommitted while a root file such as hardware.json
+        # still passed.
+        rel = path.resolve().relative_to(labkit.repo_root()).as_posix()
     except ValueError:
         return None
     return rel in TRACKED
